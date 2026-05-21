@@ -1,0 +1,31 @@
+# Template file for 'librewolf-bin'
+pkgname=librewolf-bin
+version=150.0.3
+revision=1
+archs="x86_64"
+hostmakedepends="tar xz"
+depends="desktop-file-utils hicolor-icon-theme dejavu-fonts-ttf"
+short_desc="Community-maintained fork of Firefox, focused on privacy, security and freedom"
+maintainer="Riley <riley@voidlinux.org>"
+license="MPL-2.0"
+homepage="https://librewolf.net/"
+distfiles="https://codeberg.org/api/packages/librewolf/generic/librewolf/${version}-1/librewolf-${version}-1-linux-x86_64-package.tar.xz"
+checksum=49edf3bc01341b0d92c6be4e983e668d55310255478b4419ce12ab51ed6252d6
+
+do_install() {
+	vmkdir usr/lib/librewolf
+	cp -a ./* "${DESTDIR}/usr/lib/librewolf/"
+
+	vinstall "${FILESDIR}/vendor.js" 644 usr/lib/librewolf/browser/defaults/preferences
+	vinstall "${FILESDIR}/distribution.ini" 644 usr/lib/librewolf/distribution
+	vinstall "${FILESDIR}/librewolf.desktop" 644 usr/share/applications
+
+	vmkdir usr/bin
+	ln -sf /usr/lib/librewolf/librewolf "${DESTDIR}/usr/bin/librewolf"
+	ln -sf /usr/bin/librewolf "${DESTDIR}/usr/lib/librewolf/librewolf-bin"
+
+	if [ -e "${DESTDIR}/usr/lib/librewolf/libnssckbi.so" ]; then
+		rm -f "${DESTDIR}/usr/lib/librewolf/libnssckbi.so"
+		ln -sf /usr/lib/libnssckbi.so "${DESTDIR}/usr/lib/librewolf/libnssckbi.so"
+	fi
+}
