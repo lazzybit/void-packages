@@ -1,0 +1,35 @@
+# Template file for 'mihomo'
+pkgname=mihomo
+version=1.19.25
+revision=1
+build_style=go
+go_import_path="github.com/metacubex/mihomo"
+go_ldflags="-X github.com/metacubex/mihomo/constant.Version=${version}"
+hostmakedepends="go"
+short_desc="A rule-based proxy client (Clash.Meta fork)"
+maintainer="Orphaned <orphan@voidlinux.org>"
+license="GPL-3.0-only"
+homepage="https://github.com/MetaCubeX/mihomo"
+distfiles="https://github.com/MetaCubeX/mihomo/archive/refs/tags/v${version}.tar.gz"
+checksum=d921adc7422da2a8c94e53dac4fa0443e3eeb5f55da1fe6a36025df17178d021
+
+conf_files="/etc/mihomo/config.yaml"
+make_dirs=" /etc/mihomo 0700 root root"
+
+build_options="gvisor"
+build_options_default="gvisor"
+desc_option_gvisor="Build with gVisor network stack support"
+
+if [ "$build_option_gvisor" ]; then
+	go_build_tags="with_gvisor"
+fi
+
+pre_build() {
+	export CGO_ENABLED=0
+}
+
+post_install() {
+	vsv mihomo
+	vinstall docs/config.yaml 644 etc/mihomo
+	vlicense LICENSE
+}
