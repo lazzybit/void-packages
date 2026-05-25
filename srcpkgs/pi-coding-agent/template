@@ -1,0 +1,59 @@
+# Template file for 'pi-coding-agent'
+pkgname=pi-coding-agent
+version=0.75.5
+revision=1
+hostmakedepends="nodejs $(vopt_if clipboard 'cargo')"
+depends="nodejs"
+short_desc="Terminal-based coding agent with multi-model support"
+maintainer="Riley <riley@voidlinux.org>"
+license="MIT"
+homepage="https://pi.dev/"
+distfiles="https://registry.npmjs.org/@earendil-works/pi-coding-agent/-/pi-coding-agent-${version}.tgz"
+checksum=88fff74d1fcc93343e839aa885eacb35e88cdaab97dac2636b11becc3b2499fc
+
+build_options="clipboard"
+build_options_default="clipboard"
+desc_option_clipboard="Enable clipboard support in interactive mode"
+
+do_extract() {
+	bsdtar xfz "${XBPS_SRCDISTDIR}/${pkgname}-${version}/${pkgname}-${version}.tgz" \
+		--strip-components=1 -C "${wrksrc}"
+}
+
+post_patch() {
+	# Disable upstream update check
+	vsed -i 's,if (process.env.PI_SKIP_VERSION_CHECK || process.env.PI_OFFLINE),if (true),' dist/utils/version-check.js
+}
+
+do_build() {
+	npm install --omit=dev $(vopt_if clipboard '' '--no-optional')
+}
+
+do_install() {
+	local _target="usr/lib/${pkgname}"
+
+	vmkdir "${_target}"
+	vcopy dist "${_target}"
+	vcopy node_modules "${_target}"
+	vcopy package.json "${_target}"
+	vcopy docs "${_target}"
+	vcopy examples "${_target}"
+
+	vmkdir usr/bin
+	ln -sf "/usr/lib/${pkgname}/dist/cli.js" "${DESTDIR}/usr/bin/pi"
+
+	# Remove native addons for wrong libc variant
+	local _keep_libc
+	case "${XBPS_TARGET_MACHINE}" in
+		*-musl) _keep_libc=musl ;;
+		*) _keep_libc=gnu ;;
+	esac
+	find "${DESTDIR}/${_target}/node_modules/@mariozechner" \
+		-type f -name '*.node' ! -name "*-${_keep_libc}.node" -delete
+
+	find "${DESTDIR}/${_target}" -depth -name '*.map' -delete
+
+	vlicense "${FILESDIR}/LICENSE"
+	vdoc README.md
+	vdoc CHANGELOG.md
+}
