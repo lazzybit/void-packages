@@ -1,0 +1,2 @@
+site="https://github.com/ankitects/anki/tags"
+pattern='/tag/\K\d{2}\.\d{2}(?:\.\d+)?(?=")'

@@ -1,21 +1,86 @@
 # Template file for 'anki'
 pkgname=anki
-version=2.1.15
-revision=7
-build_style=gnu-makefile
-depends="python3-PyQt5-webengine python3-requests python3-SQLAlchemy
- python3-PyAudio python3-mpv python3-Markdown python3-send2trash
- python3-BeautifulSoup4 python3-decorator python3-jsonschema"
+version=25.09.4
+revision=1
+create_wrksrc=yes
+archs="x86_64"
+_core_commit="480ef0da728c7ea3485c58529ae7ee02be3e5dba"
+_ftl_commit="fd5f984785ad07a0d3dbd893ee3d7e3671eaebd6"
+hostmakedepends="cargo git ninja nodejs pkg-config protobuf python3-installer
+ python3-pyqt6 python3-pyqt6-devel-tools python3-pyqt6-tools
+ python3-pyqt6-webengine python3-wheel rsync uv yarn"
+makedepends="libzstd-devel sqlite-devel"
+depends="python3-pyqt6-declarative python3-pyqt6-gui python3-pyqt6-multimedia
+ python3-pyqt6-network python3-pyqt6-printsupport python3-pyqt6-svg
+ python3-pyqt6-webchannel python3-pyqt6-webengine python3-pyqt6-widgets
+ python3-BeautifulSoup4 python3-Flask python3-Flask-Cors python3-Markdown
+ python3-decorator python3-distro python3-jsonschema python3-orjson
+ python3-protobuf python3-pysocks python3-requests python3-send2trash
+ python3-waitress qt6-multimedia qt6-svg sqlite zstd"
 short_desc="Spaced repetition flashcard program"
-maintainer="Orphaned <orphan@voidlinux.org>"
+maintainer="Riley Chang <riley@nomonator.com>"
 license="AGPL-3.0-or-later"
-homepage="https://apps.ankiweb.net"
-changelog="https://apps.ankiweb.net/docs/changes.html"
-distfiles="https://apps.ankiweb.net/downloads/archive/anki-$version-source.tgz"
-checksum=5a53760164c77d619f55107a13099cffe620566a7f610b61b6c4b52487f3bb89
-
+homepage="https://apps.ankiweb.net/"
+changelog="https://github.com/ankitects/anki/releases"
+distfiles="https://github.com/ankitects/anki/archive/refs/tags/${version}.tar.gz>anki-${version}.tar.gz
+ https://github.com/ankitects/anki-core-i18n/archive/${_core_commit}.tar.gz>anki-core-i18n-${_core_commit}.tar.gz
+ https://github.com/ankitects/anki-desktop-ftl/archive/${_ftl_commit}.tar.gz>anki-desktop-ftl-${_ftl_commit}.tar.gz"
+checksum="e9fda82b3b57fba3a416d8f91cf4db64368dd2f0bc02090d626df081572333c6
+ c4ed6acf03d55a0015085b26db44e4680d2c6aaeac928bef33fcf5c6d291a052
+ 2c76c141f678a2e430d1a84aab8931a806f7218b3640ae83c3a2efc6f25dcd61"
+nocross=yes
 python_version=3
 
-post_install() {
+post_extract() {
+	shopt -s dotglob
+	mv "anki-${version}"/* .
+	shopt -u dotglob
+	rmdir "anki-${version}"
+
+	rm -rf ftl/core-repo ftl/qt-repo
+	mv "anki-core-i18n-${_core_commit}" ftl/core-repo
+	mv "anki-desktop-ftl-${_ftl_commit}" ftl/qt-repo
+
+	git init -q
+}
+
+pre_build() {
+	rm -f out/build.ninja
+	cargo fetch --locked --target "$(rustc -vV | sed -n 's/host: //p')"
+	rm -f yarn.lock
+	yarn install --modules-folder out/node_modules --ignore-scripts
+	ln -sf out/node_modules node_modules
+	python3 -m venv --system-site-packages --without-pip out/pyenv
+	mkdir -p out
+	echo "${version}" > out/buildhash
+}
+
+do_build() {
+	export CFLAGS+=" -ffat-lto-objects"
+	export PYTHON_BINARY=/usr/bin/python3
+	export PROTOC_BINARY=/usr/bin/protoc
+	export NODE_BINARY=/usr/bin/node
+	export YARN_BINARY=/usr/bin/yarn
+	export UV_BINARY=/usr/bin/uv
+	export RELEASE=2
+	export OFFLINE_BUILD=1
+	export CARGO_TARGET_DIR="${wrksrc}/out/rust"
+	export LIBSQLITE3_SYS_USE_PKG_CONFIG=1
+	export ZSTD_SYS_USE_PKG_CONFIG=1
+
+	cargo build -p runner --release
+	./out/rust/release/runner build -- wheels -v
+}
+
+do_install() {
+	for whl in out/wheels/*.whl; do
+		python3 -m installer --destdir="${DESTDIR}" "$whl"
+	done
+
+	vinstall qt/launcher/lin/anki.desktop 644 usr/share/applications
+	vinstall qt/launcher/lin/anki.png 644 usr/share/pixmaps
+	vinstall qt/launcher/lin/anki.xpm 644 usr/share/pixmaps
+	vinstall qt/launcher/lin/anki.1 644 usr/share/man/man1
+	vinstall qt/launcher/lin/anki.xml 644 usr/share/mime/packages
 	vlicense LICENSE
 }
