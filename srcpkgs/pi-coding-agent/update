@@ -1,0 +1,2 @@
+site=https://github.com/earendil-works/pi/releases
+pattern='(?<=releases/tag/v)\K[\d.]+'

@@ -1,0 +1,2 @@
+site=https://github.com/MetaCubeX/mihomo/tags
+pattern='/tags/v\K[\d.]+(?=.tar.gz)'
