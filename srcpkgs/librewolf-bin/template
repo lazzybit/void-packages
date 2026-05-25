@@ -1,6 +1,6 @@
 # Template file for 'librewolf-bin'
 pkgname=librewolf-bin
-version=151.0
+version=151.0.1+2
 revision=1
 archs="x86_64"
 hostmakedepends="tar xz"
@@ -9,8 +9,8 @@ short_desc="Community-maintained fork of Firefox, focused on privacy, security a
 maintainer="Riley <riley@voidlinux.org>"
 license="MPL-2.0"
 homepage="https://librewolf.net/"
-distfiles="https://codeberg.org/api/packages/librewolf/generic/librewolf/${version}-1/librewolf-${version}-1-linux-x86_64-package.tar.xz"
-checksum=8931637986fd39442d0c10d5164198904beab455b66d7ad50eacf09c76d14e46
+distfiles="https://codeberg.org/api/packages/librewolf/generic/librewolf/${version/\+/-}/librewolf-${version/\+/-}-linux-x86_64-package.tar.xz"
+checksum=62a1542942b81a83f624021adda26acff8800260fc861e54a95cdb9b88e3be6f
 
 do_install() {
 	vmkdir usr/lib/librewolf
