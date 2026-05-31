@@ -1,6 +1,6 @@
 # Template file for 'pi-coding-agent'
 pkgname=pi-coding-agent
-version=0.75.5
+version=0.78.0
 revision=1
 hostmakedepends="nodejs $(vopt_if clipboard 'cargo')"
 depends="nodejs"
@@ -9,7 +9,7 @@ maintainer="Riley Chang <riley@nomonator.com>"
 license="MIT"
 homepage="https://pi.dev/"
 distfiles="https://registry.npmjs.org/@earendil-works/pi-coding-agent/-/pi-coding-agent-${version}.tgz"
-checksum=88fff74d1fcc93343e839aa885eacb35e88cdaab97dac2636b11becc3b2499fc
+checksum=a047da75801d9135e368a4711d06d0ca4b6ab708801ab82fd1366dde1eedd0ee
 
 build_options="clipboard"
 build_options_default="clipboard"
