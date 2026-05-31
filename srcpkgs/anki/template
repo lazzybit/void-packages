@@ -46,11 +46,15 @@ post_extract() {
 
 pre_build() {
 	rm -f out/build.ninja
+
 	cargo fetch --locked --target "$(rustc -vV | sed -n 's/host: //p')"
+
 	rm -f yarn.lock
 	yarn install --modules-folder out/node_modules --ignore-scripts
 	ln -sf out/node_modules node_modules
+
 	python3 -m venv --system-site-packages --without-pip out/pyenv
+
 	mkdir -p out
 	echo "${version}" > out/buildhash
 }
@@ -79,8 +83,9 @@ do_install() {
 
 	vinstall qt/launcher/lin/anki.desktop 644 usr/share/applications
 	vinstall qt/launcher/lin/anki.png 644 usr/share/pixmaps
-	vinstall qt/launcher/lin/anki.xpm 644 usr/share/pixmaps
-	vinstall qt/launcher/lin/anki.1 644 usr/share/man/man1
 	vinstall qt/launcher/lin/anki.xml 644 usr/share/mime/packages
+	vinstall qt/launcher/lin/anki.xpm 644 usr/share/pixmaps
+
+	vman qt/launcher/lin/anki.1
 	vlicense LICENSE
 }
